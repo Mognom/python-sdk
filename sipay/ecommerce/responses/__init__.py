@@ -1,7 +1,7 @@
 """Response module."""
 
 
-class Response:
+class Response(object):
     """Response class."""
 
     def __init__(self, request, response):

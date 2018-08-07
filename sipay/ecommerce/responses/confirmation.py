@@ -8,7 +8,7 @@ class Confirmation(Response):
 
     def __init__(self, request, response):
         """Initialize."""
-        super().__init__(request, response)
+        super(Confirmation, self).__init__(request, response)
         payload = response['payload']
         self.approval = payload.get('approval')
         self.authorizator = payload.get('authorizator')

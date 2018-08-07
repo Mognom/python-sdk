@@ -8,7 +8,7 @@ class Query(Response):
 
     def __init__(self, request, response):
         """Initialize."""
-        super().__init__(request, response)
+        super(Query, self).__init__(request, response)
         payload = response['payload']
         if payload:
             self.transactions = [Transaction(tx) for tx in payload['items']]

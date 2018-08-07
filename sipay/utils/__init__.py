@@ -1,6 +1,7 @@
 """Utils module."""
 import re
 import inspect
+from six import string_types
 
 
 def schema(schema):
@@ -45,7 +46,7 @@ def check_schema(val, schema):
     if not isinstance(val, schema['type']) and (val is not None or is_require):
         return 2
 
-    if isinstance(val, str) and 'pattern' in schema and \
+    if isinstance(val, string_types) and 'pattern' in schema and \
        not re.match(schema['pattern'], val):
         return 3
 

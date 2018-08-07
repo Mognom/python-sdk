@@ -9,7 +9,7 @@ class Card(Response):
 
     def __init__(self, request, response):
         """Initialize."""
-        super().__init__(request, response)
+        super(Card, self).__init__(request, response)
         payload = response['payload']
         self.expired_at = payload.get('expired_at')
         self.card = None

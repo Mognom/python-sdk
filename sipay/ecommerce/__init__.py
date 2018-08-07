@@ -5,6 +5,8 @@ import hmac
 import json
 import requests
 import logging
+import hashlib
+from six import string_types
 
 from sipay.ecommerce.responses.authorization import Authorization
 from sipay.ecommerce.responses.preauthorization import Preauthorization
@@ -30,7 +32,7 @@ class Ecommerce:
 
     def __init__(self, config_file):
         """Initialize Ecommerce with a config.ini file."""
-        if not isinstance(config_file, str):
+        if not isinstance(config_file, string_types):
             self._logger.error('config_file must be a string.')
             raise TypeError('config_file must be a string.')
 
@@ -60,7 +62,7 @@ class Ecommerce:
 
     @key.setter
     def key(self, key):
-        if not isinstance(key, str):
+        if not isinstance(key, string_types):
             self._logger.error('key must be a string.')
             raise TypeError('key must be a string.')
 
@@ -73,7 +75,7 @@ class Ecommerce:
 
     @secret.setter
     def secret(self, secret):
-        if not isinstance(secret, str):
+        if not isinstance(secret, string_types):
             self._logger.error('secret must be a string.')
             raise TypeError('secret must be a string.')
 
@@ -86,7 +88,7 @@ class Ecommerce:
 
     @resource.setter
     def resource(self, resource):
-        if not isinstance(resource, str):
+        if not isinstance(resource, string_types):
             self._logger.error('Value of token is incorrect.')
             raise TypeError('resource must be a string.')
 
@@ -99,7 +101,7 @@ class Ecommerce:
 
     @environment.setter
     def environment(self, environment):
-        if not isinstance(environment, str):
+        if not isinstance(environment, string_types):
             self._logger.error('environment must be a string.')
             raise TypeError('environment must be a string.')
 
@@ -117,7 +119,7 @@ class Ecommerce:
 
     @mode.setter
     def mode(self, mode):
-        if not isinstance(mode, str):
+        if not isinstance(mode, string_types):
             self._logger.error('mode must be a string.')
             raise TypeError('mode must be a string.')
 
@@ -134,7 +136,7 @@ class Ecommerce:
 
     @version.setter
     def version(self, version):
-        if not isinstance(version, str):
+        if not isinstance(version, string_types):
             self._logger.error('version must be a string.')
             raise TypeError('version must be a string.')
 
@@ -182,7 +184,7 @@ class Ecommerce:
         """Send payload to endpoint."""
         self._logger.info('Start send to endpoint ' + endpoint)
         nonce = str(time()).replace('.', '')
-        secret = bytes(self.secret, 'utf-8')
+        secret = self.secret.encode('utf-8')
         params = {
           'key': self.key,
           'resource': self.resource,
@@ -192,7 +194,8 @@ class Ecommerce:
         }
         body = json.dumps(params)
 
-        sign = hmac.new(secret, bytes(body, 'utf-8'), self.mode).hexdigest()
+        sign = hmac.new(secret, body.encode('utf-8'),
+                        getattr(hashlib, self.mode)).hexdigest()
         headers = {
             'Content-Type': 'application/json',
             'Content-Signature': sign
@@ -240,13 +243,13 @@ class Ecommerce:
 
     @schema({
         'amount': {'type': Amount},
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
         'reconciliation': {
-            'type': str,
+            'type': string_types,
             'pattern': r'^[0-9]{4}[a-zA-Z0-9]{0,8}$'},
-        'custom_01': {'type': str},
-        'custom_02': {'type': str},
-        'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}
+        'custom_01': {'type': string_types},
+        'custom_02': {'type': string_types},
+        'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}
         })
     def authorization(self, paymethod, amount, order=None, reconciliation=None,
                       custom_01=None, custom_02=None, token=None):
@@ -287,13 +290,13 @@ class Ecommerce:
 
     @schema({
         'amount': {'type': Amount},
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
         'reconciliation': {
-            'type': str,
+            'type': string_types,
             'pattern': r'^[0-9]{4}[a-zA-Z0-9]{0,8}$'},
-        'custom_01': {'type': str},
-        'custom_02': {'type': str},
-        'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}
+        'custom_01': {'type': string_types},
+        'custom_02': {'type': string_types},
+        'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}
         })
     def preauthorization(self, paymethod, amount, order=None,
                          reconciliation=None, custom_01=None,
@@ -335,13 +338,13 @@ class Ecommerce:
 
     @schema({
         'amount': {'type': Amount},
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
         'reconciliation': {
-            'type': str,
+            'type': string_types,
             'pattern': r'^[0-9]{4}[a-zA-Z0-9]{0,8}$'},
-        'custom_01': {'type': str},
-        'custom_02': {'type': str},
-        'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}
+        'custom_01': {'type': string_types},
+        'custom_02': {'type': string_types},
+        'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}
         })
     def refund(self, identificator, amount, order=None, reconciliation=None,
                custom_01=None, custom_02=None, token=None):
@@ -371,9 +374,9 @@ class Ecommerce:
 
         payload = {k: v for k, v in payload.items() if v is not None}
 
-        if isinstance(identificator, str):
+        if isinstance(identificator, string_types):
             payload['transaction_id'] = identificator
-        elif issubclass(type(identificator), PayMethod):
+        elif isinstance(identificator, PayMethod):
             payload.update(identificator.to_dict())
         else:
             self._logger.error('Incorrect identificator.')
@@ -387,7 +390,7 @@ class Ecommerce:
 
     @schema({
         'card': {'type': Card},
-        'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}
+        'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}
         })
     def register(self, card, token):
         """Send a request of register to Sipay.
@@ -406,7 +409,7 @@ class Ecommerce:
         request, response = self.send(payload, 'register')
         return Register(request, response) if response else None
 
-    @schema({'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}})
+    @schema({'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}})
     def card(self, token):
         """Send a request for search a card in Sipay.
 
@@ -422,7 +425,8 @@ class Ecommerce:
         request, response = self.send(payload, 'card')
         return CardResponse(request, response) if response else None
 
-    @schema({'transaction_id': {'type': str, 'pattern': r'^[0-9]{6,22}$'}})
+    @schema({'transaction_id': {'type': string_types,
+                                'pattern': r'^[0-9]{6,22}$'}})
     def cancellation(self, transaction_id):
         """Send a request of cancellation to Sipay.
 
@@ -438,7 +442,7 @@ class Ecommerce:
         request, response = self.send(payload, 'cancellation')
         return Cancellation(request, response) if response else None
 
-    @schema({'token': {'type': str, 'pattern': r'^[\w-]{6,128}$'}})
+    @schema({'token': {'type': string_types, 'pattern': r'^[\w-]{6,128}$'}})
     def unregister(self, token):
         """Send a request of remove a registry of a token to Sipay.
 
@@ -455,8 +459,8 @@ class Ecommerce:
         return Unregister(request, response) if response else None
 
     @schema({
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
-        'transaction_id': {'type': str, 'pattern': r'^[0-9]{6,22}$'}
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
+        'transaction_id': {'type': string_types, 'pattern': r'^[0-9]{6,22}$'}
         })
     def query(self, order=None, transaction_id=None):
         """Send a query to Sipay.
@@ -479,12 +483,12 @@ class Ecommerce:
 
     @schema({
         'amount': {'type': Amount},
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
         'reconciliation': {
-            'type': str,
+            'type': string_types,
             'pattern': r'^[0-9]{4}[a-zA-Z0-9]{0,8}$'},
-        'custom_01': {'type': str},
-        'custom_02': {'type': str}
+        'custom_01': {'type': string_types},
+        'custom_02': {'type': string_types}
         })
     def confirmation(self, identificator, amount, order=None,
                      reconciliation=None, custom_01=None, custom_02=None):
@@ -514,7 +518,7 @@ class Ecommerce:
 
         payload = {k: v for k, v in payload.items() if v is not None}
 
-        if isinstance(identificator, str):
+        if isinstance(identificator, string_types):
             payload['transaction_id'] = identificator
         elif isinstance(identificator, Preauthorization):
             payload['transaction_id'] = identificator.transaction_id
@@ -527,9 +531,9 @@ class Ecommerce:
 
     @schema({
         'amount': {'type': Amount},
-        'order': {'type': str, 'pattern': r'^[\w-]{6,64}$'},
-        'custom_01': {'type': str},
-        'custom_02': {'type': str}
+        'order': {'type': string_types, 'pattern': r'^[\w-]{6,64}$'},
+        'custom_01': {'type': string_types},
+        'custom_02': {'type': string_types}
         })
     def unlock(self, identificator, amount, order=None,
                custom_01=None, custom_02=None):
@@ -556,7 +560,7 @@ class Ecommerce:
 
         payload = {k: v for k, v in payload.items() if v is not None}
 
-        if isinstance(identificator, str):
+        if isinstance(identificator, string_types):
             payload['transaction_id'] = identificator
         elif isinstance(identificator, Preauthorization):
             payload['transaction_id'] = identificator.transaction_id

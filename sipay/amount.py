@@ -1,12 +1,14 @@
 """Amount module."""
-from sipay.catalogs.currency import CURRENCIES
 import re
+from six import string_types
+
+from sipay.catalogs.currency import CURRENCIES
 
 THOUSAND_SEPARATORS = (',', ' ', '\'', '.', '')
 DECIMAL_SEPARATORS = (',', '.')
 
 
-class Amount:
+class Amount(object):
     """Amount class."""
 
     def __init__(self, amount, currency, separator='', decimal_separator='.'):
@@ -15,18 +17,18 @@ class Amount:
         self.separator = separator
         self.decimal_separator = decimal_separator
 
-        if not isinstance(separator, str) or \
+        if not isinstance(separator, string_types) or \
            separator not in THOUSAND_SEPARATORS:
             raise TypeError('separator must be [ ,\'.].')
 
-        if not isinstance(decimal_separator, str) or \
+        if not isinstance(decimal_separator, string_types) or \
            decimal_separator not in DECIMAL_SEPARATORS:
             raise TypeError('decimal_separator must be [,.]')
 
         if decimal_separator == separator:
             raise TypeError('separators are equals.')
 
-        if isinstance(amount, str):
+        if isinstance(amount, string_types):
             if len(separator) == 1:
                 separator = "\{}".format(separator)
 
@@ -50,7 +52,7 @@ class Amount:
 
     @currency.setter
     def currency(self, currency):
-        if not isinstance(currency, str):
+        if not isinstance(currency, string_types):
             raise TypeError('currency must be a string.')
 
         if currency not in CURRENCIES:

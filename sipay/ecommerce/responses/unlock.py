@@ -8,7 +8,7 @@ class Unlock(Response):
 
     def __init__(self, request, response):
         """Initialize."""
-        super().__init__(request, response)
+        super(Unlock, self).__init__(request, response)
         payload = response['payload']
         self.order = payload.get('order')
         self.reconciliation = payload.get('reconciliation')

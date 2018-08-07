@@ -1,9 +1,13 @@
 """Utils for logging."""
 import logging
 import logging.handlers
+import sys
 
 LOGFMT = '{asctime} {levelname:>8} - {name}({lineno}): {message}'
-FORMATTER = logging.Formatter(fmt=LOGFMT, style='{')
+if (sys.version_info > (3, 0)):
+    FORMATTER = logging.Formatter(fmt=LOGFMT, style='{')
+else:
+    FORMATTER = logging.Formatter(fmt=LOGFMT)
 
 PAN_KEYS = {'pan', 'card_number', 'Ds_Cardholder_Pan'}
 HIDDEN_KEYS = {'cvv', 'password'}
@@ -14,7 +18,9 @@ class FileLevelHandler(logging.handlers.RotatingFileHandler):
 
     def __init__(self, filename, size=0, backup=0, fmt=FORMATTER):
         """Initialize handler."""
-        super().__init__(filename, maxBytes=size, backupCount=backup)
+        super(FileLevelHandler, self).__init__(filename,
+                                               maxBytes=size,
+                                               backupCount=backup)
         self.setFormatter(fmt)
 
 
